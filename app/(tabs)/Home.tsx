@@ -1,21 +1,17 @@
+import AgentListComp from "@/components/home/AgentListComp";
+import CreateAgentBanner from "@/components/home/CreateAgentBanner";
 import color from "@/shared/color";
 import { useNavigation } from "expo-router";
 import { Cog } from "lucide-react-native";
 import React, { useEffect } from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Image, Text, TouchableOpacity } from "react-native";
 
 export default function Home() {
   const navigation = useNavigation();
   useEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
-        <Text
-          style={{
-            fontFamily: "PoppinsRegular",
-            fontSize: 19,
-            color: color.WHITE,
-          }}
-        >
+        <Text style={{ fontFamily: "PoppinsRegular", fontSize: 19, color: color.WHITE }}>
           AI-Poket-Agent
         </Text>
       ),
@@ -49,8 +45,15 @@ export default function Home() {
   }, []);
 
   return (
-    <View>
-      <Text>Home</Text>
-    </View>
+    <ScrollView contentContainerStyle={{ padding: 15, backgroundColor: color.BLACK }}>
+      {/* featured list (disabled inner scroll so parent handles scrolling) */}
+      <AgentListComp isFeatured={true} scrollEnabled={false} />
+
+      {/* banner in between */}
+      <CreateAgentBanner />
+
+      {/* non-featured list */}
+      <AgentListComp isFeatured={false} scrollEnabled={false} />
+    </ScrollView>
   );
 }
