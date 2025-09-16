@@ -26,17 +26,21 @@
 //   );
 // }
 
-
 //
-import React from "react";
-import { FlatList, View } from "react-native";
 import { Agents } from "@/shared/AgentList";
+import { useRouter } from "expo-router";
+import React from "react";
+import { FlatList, TouchableOpacity, View } from "react-native";
 import AgentCard from "./AgentCard";
 import NonFeaturedAgentCard from "./NonFeaturedAgentCard";
 
-export default function AgentListComp({ isFeatured, scrollEnabled = true }: any) {
+export default function AgentListComp({
+  isFeatured,
+  scrollEnabled = true,
+}: any) {
   // filter instead of assigning
   const data = Agents.filter((a: any) => !!a.featured === !!isFeatured);
+  const router = useRouter();
 
   return (
     <View style={{ marginBottom: 10 }}>
@@ -47,13 +51,26 @@ export default function AgentListComp({ isFeatured, scrollEnabled = true }: any)
         keyExtractor={(item: any) => item.id.toString()}
         columnWrapperStyle={{ justifyContent: "space-between" }}
         renderItem={({ item, index }) => (
-          <View style={{ flex: 1, padding: 5, }}>
+          <TouchableOpacity
+            style={{ flex: 1, padding: 5 }}
+            onPress={() =>
+              router.push({
+                pathname: "/chat" as any,
+                params: {
+                  agentName: item.name,
+                  initialText: item.initialText,
+                  agentPrompt: item.prompt,
+                  agentId: item.id,
+                },
+              })
+            }
+          >
             {isFeatured ? (
               <AgentCard agent={item} />
             ) : (
               <NonFeaturedAgentCard agent={item} />
             )}
-          </View>
+          </TouchableOpacity>
         )}
         ListEmptyComponent={<View />}
       />
