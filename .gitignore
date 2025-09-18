@@ -40,6 +40,9 @@ yarn-error.*
 .env*
 app-example
 
+.config/FirebaseConfig.ts
+.FirebaseConfig.ts
+
 # generated native folders
 /ios
 /android
