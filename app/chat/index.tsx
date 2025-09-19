@@ -32,7 +32,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // supabase client + bucket from config
+import { firestoreDb } from "@/config/FirebaseConfig";
 import { supabase, SUPABASE_BUCKET } from "@/config/supabase";
+import { useUser } from "@clerk/clerk-expo";
+import { doc, setDoc } from "firebase/firestore";
 
 type Message = {
   role: string;
@@ -41,7 +44,7 @@ type Message = {
 
 export default function ChatUi() {
   const navigation = useNavigation();
-  const { agentName, agentId, agentPrompt, initialText } =
+  const { agentName, agentId, agentPrompt, initialText, chatId } =
     useLocalSearchParams();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -51,6 +54,9 @@ export default function ChatUi() {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   // file state info (local URI from Expo ImagePicker)
   const [file, setFile] = useState<string | null>(null);
+  const [docId, setDocId] = useState<string | null>();
+
+  const { user } = useUser();
 
   useEffect(() => {
     navigation.setOptions({
@@ -65,7 +71,10 @@ export default function ChatUi() {
         color: color.WHITE,
       },
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (!chatId) {
+      const id = Date.now().toString();
+      setDocId(id);
+    }
   }, []);
 
   useEffect(() => {
@@ -235,14 +244,14 @@ export default function ChatUi() {
             type: "text",
             text: input,
           },
-          {type:'image_url',image_url:{url:uploadedImageUrl}}
+          { type: "image_url", image_url: { url: uploadedImageUrl } },
         ],
       };
-      setInput('');
+      setInput("");
       setFile(null);
     } else {
       newMessage = { role: "user", content: input.trim() };
-      setInput('');
+      setInput("");
     }
 
     setMessages((prev) => [...prev, newMessage]);
@@ -330,6 +339,29 @@ export default function ChatUi() {
     }
   };
 
+  //saving message
+
+  useEffect(() => {
+    const Savemesgs = async () => {
+      if (messages.length > 0 && docId) {
+        await setDoc(
+          doc(firestoreDb, "chats", docId),
+          {
+            userEmail: user?.primaryEmailAddress?.emailAddress,
+            messages: messages,
+            docId: docId,
+            agentId: agentId,
+            agentName: agentName,
+            agentPrompt: agentPrompt,
+            initialText: initialText,
+          },
+          { merge: true }
+        );
+      }
+    };
+    Savemesgs();
+  }, [messages]);
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -357,7 +389,7 @@ export default function ChatUi() {
                       : styles.assistantMessage,
                   ]}
                 >
-                  {typeof item.content === 'string' ? (
+                  {typeof item.content === "string" ? (
                     item.content === "...loading" ? (
                       <TypingIndicator />
                     ) : (
@@ -373,7 +405,7 @@ export default function ChatUi() {
                     )
                   ) : (
                     <>
-                      {item.content.find((c: any) => c.type === 'text') && (
+                      {item.content.find((c: any) => c.type === "text") && (
                         <Text
                           style={
                             item.role === "user"
@@ -381,13 +413,27 @@ export default function ChatUi() {
                               : styles.assistantText
                           }
                         >
-                          {item.content.find((c: any) => c.type === 'text').text}
+                          {
+                            item.content.find((c: any) => c.type === "text")
+                              .text
+                          }
                         </Text>
                       )}
-                      {item.content.find((c: any) => c.type === 'image_url') && (
-                        <Image 
-                          source={{ uri: item.content.find((c: any) => c.type === 'image_url').image_url?.url }}
-                          style={{ width: 180, height: 180, borderRadius: 15, marginTop: 8 }}
+                      {item.content.find(
+                        (c: any) => c.type === "image_url"
+                      ) && (
+                        <Image
+                          source={{
+                            uri: item.content.find(
+                              (c: any) => c.type === "image_url"
+                            ).image_url?.url,
+                          }}
+                          style={{
+                            width: 180,
+                            height: 180,
+                            borderRadius: 15,
+                            marginTop: 8,
+                          }}
                         />
                       )}
                     </>
@@ -397,7 +443,9 @@ export default function ChatUi() {
                     item.content !== "...loading" && (
                       <Pressable
                         style={styles.clipboardButton}
-                        onPress={() => copyToClipboard(item?.content.toString())}
+                        onPress={() =>
+                          copyToClipboard(item?.content.toString())
+                        }
                       >
                         <Layers2 color={color.WHITE} size={15} />
                       </Pressable>
