@@ -1,32 +1,3 @@
-// import { Agents } from "@/shared/AgentList";
-// import { FlatList, View } from "react-native";
-// import AgentCard from "./AgentCard";
-// import NonFeaturedAgentCard from "./NonFeaturedAgentCard";
-
-// export default function AgentListComp({ isFeatured }: any) {
-//   return (
-//     <View>
-//       <FlatList
-//         data={Agents}
-//         numColumns={2}
-//         //@ts-ignore
-//         renderItem={({ item, index }) =>
-//           (item.featured = isFeatured && (
-//             <View style={{ flex: 1, padding: 5 }}>
-//               {item.featured ? (
-//                 <AgentCard agent={item} key={index} />
-//               ) : (
-//                 <NonFeaturedAgentCard agent={item} key={index} />
-//               )}
-//             </View>
-//           ))
-//         }
-//       />
-//     </View>
-//   );
-// }
-
-//
 import { Agents } from "@/shared/AgentList";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -43,16 +14,19 @@ export default function AgentListComp({
   const router = useRouter();
 
   return (
-    <View style={{ marginBottom: 10 }}>
+    <View style={{ marginBottom: 12 }}>
       <FlatList
         data={data}
         numColumns={2}
         scrollEnabled={scrollEnabled} // pass false from Home when inside ScrollView
         keyExtractor={(item: any) => item.id.toString()}
-        columnWrapperStyle={{ justifyContent: "space-between" }}
+        columnWrapperStyle={{
+          justifyContent: "space-between",
+          marginBottom: 10,
+        }}
         renderItem={({ item, index }) => (
           <TouchableOpacity
-            style={{ flex: 1, padding: 5 }}
+            style={{ flex: 1, padding: 6 }}
             onPress={() =>
               router.push({
                 pathname: "/chat" as any,
@@ -64,6 +38,7 @@ export default function AgentListComp({
                 },
               })
             }
+            activeOpacity={0.86}
           >
             {isFeatured ? (
               <AgentCard agent={item} />

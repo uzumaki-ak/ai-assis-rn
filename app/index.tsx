@@ -39,7 +39,7 @@ export default function Index() {
 
   useEffect(() => {
     console.log("Auth state changed:", { isSignedIn });
-    
+
     if (isSignedIn) {
       router.replace("/(tabs)/Home");
     }
@@ -55,10 +55,10 @@ export default function Index() {
   const onLoginPress = useCallback(async () => {
     console.log("Login button pressed");
     setLoginLoading(true);
-    
+
     try {
       console.log("Starting SSO flow...");
-      
+
       const result = await startSSOFlow({
         strategy: "oauth_google",
         redirectUrl: AuthSession.makeRedirectUri({
@@ -101,13 +101,13 @@ export default function Index() {
         // Handle incomplete sign in
         console.log("Sign in incomplete, additional steps required");
         Alert.alert(
-          "Additional Verification Required", 
+          "Additional Verification Required",
           "Please complete the verification process."
         );
       }
     } catch (err) {
       console.error("Login error:", JSON.stringify(err, null, 2));
-      
+
       // Show user-friendly error message
       let errorMessage = "Something went wrong. Please try again.";
 
@@ -119,7 +119,8 @@ export default function Index() {
       ) {
         const errorCode = (err as { code: string }).code;
         if (errorCode === "form_identifier_not_found") {
-          errorMessage = "Account not found. Please check your email or sign up.";
+          errorMessage =
+            "Account not found. Please check your email or sign up.";
         } else if (errorCode === "session_exists") {
           errorMessage = "You're already signed in.";
         }
@@ -171,8 +172,8 @@ export default function Index() {
       </View>
 
       {/* Login Button */}
-      <TouchableOpacity 
-        style={[styles.button, loginLoading && styles.buttonDisabled]} 
+      <TouchableOpacity
+        style={[styles.button, loginLoading && styles.buttonDisabled]}
         onPress={onLoginPress}
         disabled={loginLoading}
       >

@@ -1,4 +1,3 @@
-// ChatUi.tsx
 import color from "@/shared/color";
 import { AIChatmodel } from "@/shared/GlobalApi";
 import * as Clipboard from "expo-clipboard";
@@ -10,7 +9,6 @@ import { decode as base64Decode } from "base64-arraybuffer";
 import {
   Axe,
   CloudUploadIcon,
-  HeartPlus,
   Layers2,
   LucidePlaneTakeoff,
 } from "lucide-react-native";
@@ -44,8 +42,16 @@ type Message = {
 
 export default function ChatUi() {
   const navigation = useNavigation();
-  const { agentName, agentId, agentPrompt, initialText, chatId } =
-    useLocalSearchParams();
+  const {
+    agentName,
+    agentId,
+    agentPrompt,
+    initialText,
+    chatId,
+    emoji,
+    messagesList,
+  } = useLocalSearchParams();
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const flatListRef = useRef<FlatList>(null);
@@ -54,15 +60,15 @@ export default function ChatUi() {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   // file state info (local URI from Expo ImagePicker)
   const [file, setFile] = useState<string | null>(null);
-  const [docId, setDocId] = useState<string | null>();
+  const [docId, setDocId] = useState<string | null>(null);
 
   const { user } = useUser();
 
   useEffect(() => {
     navigation.setOptions({
       headerShown: true,
-      headerTitle: agentName,
-      headerRight: () => <HeartPlus color={color.WHITE} />,
+      headerTitle: agentName?.toString() || "Chat",
+      // headerRight: () => <HeartPlus color={color.WHITE} />,
       headerStyle: {
         backgroundColor: color.BLACK,
       },
@@ -71,11 +77,33 @@ export default function ChatUi() {
         color: color.WHITE,
       },
     });
-    if (!chatId) {
+
+    // Initialize docId properly
+    if (chatId) {
+      // If we have a chatId, we're loading existing chat
+      setDocId(chatId.toString());
+    } else {
+      // If no chatId, create new chat
       const id = Date.now().toString();
       setDocId(id);
     }
-  }, []);
+
+    // Load existing messages if coming from history
+    if (messagesList) {
+      try {
+        const messagesListJSON = JSON.parse(messagesList.toString());
+        if (messagesListJSON?.length > 0) {
+          // Filter out system messages to avoid duplicates
+          const nonSystemMessages = messagesListJSON.filter(
+            (msg: Message) => msg.role !== "system"
+          );
+          setMessages(nonSystemMessages);
+        }
+      } catch (error) {
+        console.error("Error parsing messagesList:", error);
+      }
+    }
+  }, [chatId, messagesList, agentName, navigation]);
 
   useEffect(() => {
     const showSub = Keyboard.addListener("keyboardDidShow", (e) => {
@@ -91,25 +119,17 @@ export default function ChatUi() {
     };
   }, []);
 
-  // setting up prompt
+  // setting up prompt - only add if not loading from existing messages
   useEffect(() => {
-    if (agentPrompt) {
+    if (agentPrompt && !messagesList) {
       setMessages((prev) => [
         ...prev,
         { role: "system", content: agentPrompt.toString() },
       ]);
     }
-  }, [agentPrompt]);
+  }, [agentPrompt, messagesList]);
 
   // ---------- Upload function (Supabase) using base64 -> ArrayBuffer ----------
-  /**
-   * Upload local file URI (Expo ImagePicker result) to Supabase Storage.
-   * - Enforces 5 MB limit
-   * - Uses expo-file-system to read base64 and base64-arraybuffer to decode.
-   * - Returns public URL (if bucket public) or null.
-   */
-  // Fixed UploadImageToStorage function
-  // Alternative method using fetch and Blob (more reliable for React Native)
   const UploadImageToStorage = async (
     localUri: string
   ): Promise<string | null> => {
@@ -147,8 +167,9 @@ export default function ChatUi() {
       }
 
       // Confirm file info (size)
-      //@ts-ignore
-      const info = await FileSystem.getInfoAsync(fileUri, { size: true });
+      const info = await FileSystem.getInfoAsync(fileUri, {
+        size: true,
+      } as any);
       console.log("File info:", info);
       if (!info.exists && !fileUri.startsWith("content://")) {
         ToastAndroid.show("Selected file not accessible.", ToastAndroid.LONG);
@@ -225,7 +246,7 @@ export default function ChatUi() {
     }
   };
 
-  // ---------- sendMessage (only small changes: await upload and attach URL if needed) ----------
+  // ---------- sendMessage ----------
   const sendMessage = async () => {
     if (!input?.trim()) return;
 
@@ -295,7 +316,7 @@ export default function ChatUi() {
     }
   };
 
-  // TypingIndicator & other UI functions (unchanged)
+  // TypingIndicator & other UI functions
   const TypingIndicator = () => {
     const [currentDot, setCurrentDot] = useState(0);
 
@@ -339,28 +360,60 @@ export default function ChatUi() {
     }
   };
 
-  //saving message
-
+  // Saving messages with proper undefined handling
   useEffect(() => {
     const Savemesgs = async () => {
-      if (messages.length > 0 && docId) {
-        await setDoc(
-          doc(firestoreDb, "chats", docId),
-          {
-            userEmail: user?.primaryEmailAddress?.emailAddress,
+      if (
+        messages.length > 0 &&
+        docId &&
+        user?.primaryEmailAddress?.emailAddress
+      ) {
+        try {
+          const dataToSave: any = {
+            userEmail: user.primaryEmailAddress.emailAddress,
             messages: messages,
             docId: docId,
-            agentId: agentId,
-            agentName: agentName,
-            agentPrompt: agentPrompt,
-            initialText: initialText,
-          },
-          { merge: true }
-        );
+            lastModified: Date.now(),
+          };
+
+          // Only add fields if they exist and are not undefined
+          if (agentId !== undefined && agentId !== null) {
+            dataToSave.agentId = agentId.toString();
+          }
+          if (agentName !== undefined && agentName !== null) {
+            dataToSave.agentName = agentName.toString();
+          }
+          if (agentPrompt !== undefined && agentPrompt !== null) {
+            dataToSave.agentPrompt = agentPrompt.toString();
+          }
+          if (initialText !== undefined && initialText !== null) {
+            dataToSave.initialText = initialText.toString();
+          }
+          if (emoji !== undefined && emoji !== null) {
+            dataToSave.emoji = emoji.toString();
+          }
+
+          await setDoc(doc(firestoreDb, "chats", docId), dataToSave, {
+            merge: true,
+          });
+
+          console.log("Messages saved successfully");
+        } catch (error) {
+          console.error("Error saving messages:", error);
+        }
       }
     };
     Savemesgs();
-  }, [messages]);
+  }, [
+    messages,
+    docId,
+    user,
+    agentId,
+    agentName,
+    agentPrompt,
+    initialText,
+    emoji,
+  ]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -378,9 +431,10 @@ export default function ChatUi() {
             showsVerticalScrollIndicator={false}
             scrollEnabled={true}
             nestedScrollEnabled={true}
-            // @ts-ignore
-            renderItem={({ item, index }) =>
-              item.role !== "system" && (
+            renderItem={({ item, index }) => {
+              if (item.role === "system") return null;
+
+              return (
                 <View
                   style={[
                     styles.messageContainer,
@@ -451,8 +505,8 @@ export default function ChatUi() {
                       </Pressable>
                     )}
                 </View>
-              )
-            }
+              );
+            }}
             keyExtractor={(item, index) => index.toString()}
             onContentSizeChange={() =>
               flatListRef.current?.scrollToEnd?.({ animated: true } as any)
@@ -523,7 +577,6 @@ export default function ChatUi() {
   );
 }
 
-// styles unchanged (paste your existing styles)
 const styles = StyleSheet.create({
   container: {
     backgroundColor: color.LITTLEBLACK,

@@ -1,20 +1,18 @@
 import { firestoreDb } from "@/config/FirebaseConfig";
-import color from "@/shared/color";
 import { useUser } from "@clerk/clerk-expo";
 import { useNavigation, useRouter } from "expo-router";
 import { doc, setDoc } from "firebase/firestore";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  Modal,
-  Alert, // kept import in case other parts use it; not used for styling here
   Animated,
   Easing,
+  Modal,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  Platform,
 } from "react-native";
 import EmojiPicker from "rn-emoji-keyboard";
 
@@ -24,7 +22,13 @@ export default function CreateAgent() {
   const [agentName, setAgentName] = useState<string>("");
   const [instruction, setInstruction] = useState<string>("");
   const [resultModalVisible, setResultModalVisible] = useState(false);
-  const [resultModalPayload, setResultModalPayload] = useState<{ title: string; message: string; agentId?: string; agentName?: string; agentPrompt?: string } | null>(null);
+  const [resultModalPayload, setResultModalPayload] = useState<{
+    title: string;
+    message: string;
+    agentId?: string;
+    agentName?: string;
+    agentPrompt?: string;
+  } | null>(null);
 
   const navigation = useNavigation();
   const router = useRouter();
@@ -90,7 +94,10 @@ export default function CreateAgent() {
   const CreateAgent = async () => {
     if (!agentName || !emoji || !instruction) {
       // show our custom modal instead of native Alert
-      setResultModalPayload({ title: "Missing fields", message: "bro write something" });
+      setResultModalPayload({
+        title: "Missing fields",
+        message: "bro write something",
+      });
       setResultModalVisible(true);
       return;
     }
@@ -129,6 +136,7 @@ export default function CreateAgent() {
           initialText: "",
           agentPrompt: payload.agentPrompt,
           agentId: payload.agentId,
+          emoji: emoji,
         },
       });
     }
@@ -140,7 +148,14 @@ export default function CreateAgent() {
         styles.container,
         {
           opacity: containerFade,
-          transform: [{ translateY: containerFade.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }],
+          transform: [
+            {
+              translateY: containerFade.interpolate({
+                inputRange: [0, 1],
+                outputRange: [8, 0],
+              }),
+            },
+          ],
         },
       ]}
     >
@@ -229,11 +244,16 @@ export default function CreateAgent() {
         <View style={styles.modalBackdrop}>
           <Animated.View style={styles.modalCard}>
             <Text style={styles.modalTitle}>{resultModalPayload?.title}</Text>
-            <Text style={styles.modalMessage}>{resultModalPayload?.message}</Text>
+            <Text style={styles.modalMessage}>
+              {resultModalPayload?.message}
+            </Text>
 
             <View style={styles.modalButtonsRow}>
               <TouchableOpacity
-                style={[styles.modalButton, { borderColor: "rgba(245,222,179,0.12)" }]}
+                style={[
+                  styles.modalButton,
+                  { borderColor: "rgba(245,222,179,0.12)" },
+                ]}
                 onPress={() => setResultModalVisible(false)}
               >
                 <Text style={styles.modalButtonText}>OK</Text>

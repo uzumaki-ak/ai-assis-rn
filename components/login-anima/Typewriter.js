@@ -28,8 +28,16 @@ export default function Typewriter({
     // start cursor blink
     Animated.loop(
       Animated.sequence([
-        Animated.timing(cursorOpacity, { toValue: 0, duration: 400, useNativeDriver: true }),
-        Animated.timing(cursorOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
+        Animated.timing(cursorOpacity, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cursorOpacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
       ])
     ).start();
 
@@ -68,7 +76,7 @@ export default function Typewriter({
       if (raw.length > 0) {
         timeout = setTimeout(() => {
           if (!mounted.current) return;
-          setRaw(prev => prev.slice(0, prev.length - 1));
+          setRaw((prev) => prev.slice(0, prev.length - 1));
         }, deleteSpeed);
       } else {
         // move to next language
