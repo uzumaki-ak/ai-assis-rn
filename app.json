@@ -4,20 +4,32 @@
     "slug": "ai-assist",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon":"./assets/images/login.png",
+    "icon": "./assets/images/login.png",
     "scheme": "aiassist",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.uzumakiak.aiassist",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ],
       "adaptiveIcon": {
-        "foregroundImage":"./assets/images/login.png",
+        "foregroundImage": "./assets/images/login.png",
         "backgroundColor": "#E6F4FE"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.uzumakiak.aiassist",
+      "compileSdkVersion": 34,
+      "targetSdkVersion": 34,
+      "minSdkVersion": 21
     },
     "web": {
       "output": "static"
@@ -27,9 +39,9 @@
       [
         "expo-splash-screen",
         {
-          "image":"./assets/images/login.png",
-          "imageWidth":200,
-          "resizeMode":"contain",
+          "image": "./assets/images/login.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
           "backgroundColor": "#ffffff",
           "dark": {
             "backgroundColor": "#000000"
@@ -38,8 +50,13 @@
       ]
     ],
     "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f782f538-8502-4849-a4b6-cea211c58605"
+      }
     }
   }
 }

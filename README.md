@@ -1,50 +1,90 @@
-# Welcome to your Expo app 👋
+# 🤖 AI Assist
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+AI Assist is a cross-platform mobile application built with **Expo Router** and **React Native**.  
+It empowers users to create custom AI agents, chat with them, and manage their interaction history.  
+The app integrates **Clerk** for authentication and **Firebase** for backend data handling, offering a smooth, modern, and secure user experience.
 
-## Get started
+---
 
-1. Install dependencies
+## ✨ Features
 
-   ```bash
-   npm install
-   ```
+- 🔑 **Authentication with Clerk** — Secure sign-in and user management  
+- 🧑‍💻 **Create Custom AI Agents** — Define prompts, choose emojis, and personalize your agents  
+- 💬 **Chat Interface** — Interact with your created agents in real-time  
+- 📜 **History Management** — View and search past chat history  
+- 🌍 **Explore Section** — Discover other available agents  
+- 👤 **Profile Page** — Manage account and quick access to features  
+- 🎨 **Dark & Wheat Theme** — Modern UI with subtle animations  
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## 📂 Project Structure
 
 ```bash
-npm run reset-project
-```
+ai-assist/
+├── app/                          # Expo Router app directory
+│   ├── (tabs)/                   # Tab navigation group
+│   │   ├── _layout.tsx           # Tab layout configuration
+│   │   ├── Explore.tsx           # Explore tab screen
+│   │   ├── History.tsx           # History tab screen
+│   │   ├── Home.tsx              # Home tab screen
+│   │   └── Profile.tsx           # Profile tab screen
+│   ├── chat/                     # Chat feature
+│   │   └── index.tsx             # Chat screen
+│   ├── create-agent/             # Agent creation
+│   │   ├── _layout.tsx           # Create agent layout
+│   │   └── index.tsx             # Create agent screen
+│   └── home/                     # Home section
+│       ├── AgentCard.tsx         # Agent card component
+│       ├── AgentListComp.tsx     # Agent list component
+│       ├── CreateAgentBanner.tsx # Create agent banner
+│       └── NonFeaturedAgents.tsx # Non-featured agents
+├── assets/                       # Static assets
+├── components/                   # Reusable components
+│   └── explore/                  # Explore-specific components
+├── login-anima/                  # Login animation assets
+├── config/                       # Configuration files (Firebase, Clerk, etc.)
+├── Montserrat/                   # Font files
+├── shared/                       # Shared utilities/components
+├── .gitignore                    # Git ignore rules
+├── app.json                      # Expo configuration
+├── eas.json                      # EAS Build configuration
+├── eslint.config.js              # ESLint configuration
+├── expo-start.js                 # Expo start script
+├── metro.config.js               # Metro bundler configuration
+├── package-lock.json             # Dependency lock file
+├── package.json                  # Project dependencies
+├── README.md                     # Project documentation
+└── tsconfig.json                 # TypeScript configuration
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-## Learn more
+🛠️ Tech Stack
 
-To learn more about developing your project with Expo, look at the following resources:
+React Native (v0.81) + Expo Router
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Clerk (authentication)
 
-## Join the community
+Firebase Firestore (data storage)
 
-Join our community of developers creating universal apps.
+Lucide Icons (UI icons)
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+TypeScript for type safety
+
+npm install
+# or
+yarn install
+npm start
+# press "a" for Android, "i" for iOS, or "w" for Web
+📌 Roadmap
+
+ Add AI model integration for real agent responses
+
+ Push notifications for chat updates
+
+ Agent marketplace for sharing/discovering agents
+
+ Enhanced theming (light/dark toggle)
+ 🤝 Contributing
+
+Contributions are welcome!
+Please open an issue or submit a pull request for improvement
