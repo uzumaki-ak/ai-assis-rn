@@ -8,15 +8,24 @@ The app integrates **Clerk** for authentication and **Firebase** for backend dat
 
 ## ✨ Features
 
-- 🔑 **Authentication with Clerk** — Secure sign-in and user management  
-- 🧑‍💻 **Create Custom AI Agents** — Define prompts, choose emojis, and personalize your agents  
-- 💬 **Chat Interface** — Interact with your created agents in real-time  
-- 📜 **History Management** — View and search past chat history  
-- 🌍 **Explore Section** — Discover other available agents  
-- 👤 **Profile Page** — Manage account and quick access to features  
-- 🎨 **Dark & Wheat Theme** — Modern UI with subtle animations  
+- 🔑 **Authentication with Clerk** — Secure sign-in and user management
+- 🧑‍💻 **Create Custom AI Agents** — Define prompts, choose emojis, and personalize your agents
+- 💬 **Chat Interface** — Interact with your created agents in real-time
+- 📜 **History Management** — View and search past chat history
+- 🌍 **Explore Section** — Discover other available agents
+- 👤 **Profile Page** — Manage account and quick access to features
+- 🎨 **Dark & Wheat Theme** — Modern UI with subtle animations
 
 ---
+
+images
+![welcome screeen](<Screenshot 2025-12-27 142820.png>)
+![home screen](<Screenshot 2025-12-27 142852.png>)
+![create-agent-tab](<Screenshot 2025-12-27 142905.png>)
+![explore agents](<Screenshot 2025-12-27 142915.png>)
+![history tab](<Screenshot 2025-12-27 142928.png>)
+![profile page](<Screenshot 2025-12-27 142943.png>)
+![android studio](<Screenshot 2025-12-27 143116.png>)
 
 ## 📂 Project Structure
 
@@ -88,3 +97,4 @@ npm start
 
 Contributions are welcome!
 Please open an issue or submit a pull request for improvement
+```

@@ -6,7 +6,7 @@ export const AIChatmodel = async (messages: any) => {
     "https://kravixstudio.com/api/v1/chat",
     {
       message: messages, // Messages to AI
-      aiModel: "gpt-5", // Selected AI model
+      aiModel: "gpt-4.1-mini", // Selected AI model
       outputType: "text", // 'text' or 'json'
     },
     {
