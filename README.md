@@ -5,6 +5,7 @@ It empowers users to create custom AI agents, chat with them, and manage their i
 The app integrates **Clerk** for authentication and **Firebase** for backend data handling, offering a smooth, modern, and secure user experience.
 
 ---
+## Demo video : https://youtu.be/gthwb3HnEqI
 
 ## ✨ Features
 
