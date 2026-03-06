@@ -1,19 +1,31 @@
 // app/ProfileScreen.tsx
 import color from "@/shared/color";
+import { API_KEYS, getApiKey, saveApiKey } from "@/shared/KeyManagement";
 import { useClerk, useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
-import { Clock, Compass, LogOut, PlusCircle } from "lucide-react-native";
+import {
+    Clock,
+    Compass,
+    Eye,
+    EyeOff,
+    Key,
+    LogOut,
+    PlusCircle,
+    Settings,
+} from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Animated,
-  Image,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Animated,
+    Image,
+    Modal,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 // ----- Theme (uses shared color plus a gold accent) -----
@@ -114,6 +126,127 @@ const ConfirmModal: React.FC<{
   );
 };
 
+// ----- API Settings Modal Component -----
+const ApiSettingsModal: React.FC<{
+  visible: boolean;
+  onClose: () => void;
+}> = ({ visible, onClose }) => {
+  const [keys, setKeys] = useState({
+    google: "",
+    euron: "",
+    openrouter: "",
+    mistral: "",
+    openai: "",
+  });
+  const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (visible) {
+      loadKeys();
+    }
+  }, [visible]);
+
+  const loadKeys = async () => {
+    const google = await getApiKey(API_KEYS.GOOGLE_AI);
+    const euron = await getApiKey(API_KEYS.EURON);
+    const openrouter = await getApiKey(API_KEYS.OPENROUTER);
+    const mistral = await getApiKey(API_KEYS.MISTRAL);
+    const openai = await getApiKey(API_KEYS.OPENAI);
+    setKeys({
+      google: google || "",
+      euron: euron || "",
+      openrouter: openrouter || "",
+      mistral: mistral || "",
+      openai: openai || "",
+    });
+  };
+
+  const handleSave = async () => {
+    await saveApiKey(API_KEYS.GOOGLE_AI, keys.google);
+    await saveApiKey(API_KEYS.EURON, keys.euron);
+    await saveApiKey(API_KEYS.OPENROUTER, keys.openrouter);
+    await saveApiKey(API_KEYS.MISTRAL, keys.mistral);
+    await saveApiKey(API_KEYS.OPENAI, keys.openai);
+    Alert.alert("Success", "API Keys saved successfully!");
+    onClose();
+  };
+
+  const toggleVisibility = (name: string) => {
+    setShowKeys((prev) => ({ ...prev, [name]: !prev[name] }));
+  };
+
+  const renderKeyInput = (
+    label: string,
+    name: keyof typeof keys,
+    placeholder: string,
+  ) => (
+    <View style={styles.apiKeyInputContainer}>
+      <Text style={styles.apiKeyLabel}>{label}</Text>
+      <View style={styles.apiKeyInputWrapper}>
+        <TextInput
+          style={styles.apiKeyInput}
+          placeholder={placeholder}
+          placeholderTextColor="#666"
+          value={keys[name]}
+          onChangeText={(text) =>
+            setKeys((prev) => ({ ...prev, [name]: text }))
+          }
+          secureTextEntry={!showKeys[name]}
+        />
+        <TouchableOpacity
+          onPress={() => toggleVisibility(name as string)}
+          style={styles.eyeIcon}
+        >
+          {showKeys[name] ? (
+            <EyeOff size={20} color={THEME.primary} />
+          ) : (
+            <Eye size={20} color={THEME.primary} />
+          )}
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  return (
+    <Modal transparent visible={visible} animationType="slide">
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalCard, { maxHeight: "80%" }]}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>API Keys</Text>
+            <TouchableOpacity onPress={onClose}>
+              <LogOut
+                size={20}
+                color={THEME.primary}
+                transform={[{ rotate: "90deg" }]}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView
+            style={{ width: "100%" }}
+            showsVerticalScrollIndicator={false}
+          >
+            {renderKeyInput("Google AI", "google", "Enter Google AI API key")}
+            {renderKeyInput("Euron", "euron", "Enter Euron API key")}
+            {renderKeyInput(
+              "OpenRouter",
+              "openrouter",
+              "Enter OpenRouter API key",
+            )}
+            {renderKeyInput("Mistral", "mistral", "Enter Mistral API key")}
+            {renderKeyInput("OpenAI", "openai", "Enter OpenAI API key")}
+          </ScrollView>
+
+          <TouchableOpacity style={styles.saveKeysButton} onPress={handleSave}>
+            <Settings size={20} color="#111" />
+            <Text style={styles.saveKeysButtonText}>Save Keys</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
 // ----- Profile Header Component -----
 const ProfileHeader: React.FC<{ user: ReturnType<typeof useUser>["user"] }> = ({
   user,
@@ -167,6 +300,11 @@ const MenuList: React.FC<{
       path: "(tabs)/History",
     },
     {
+      title: "API Settings",
+      icon: <Key size={22} color={THEME.primary} />,
+      path: "api_settings",
+    },
+    {
       title: "Logout",
       icon: <LogOut size={22} color={THEME.danger} />,
       path: "logout",
@@ -194,6 +332,7 @@ export default function ProfileScreen() {
   const router = useRouter();
 
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showApiSettings, setShowApiSettings] = useState(false);
   const [pendingLogout, setPendingLogout] = useState(false);
 
   // handle menu actions; opens themed animated confirmation for logout
@@ -203,6 +342,9 @@ export default function ProfileScreen() {
     if (menuItem.path === "logout") {
       // open our themed modal
       setShowConfirm(true);
+      return;
+    } else if (menuItem.path === "api_settings") {
+      setShowApiSettings(true);
       return;
     } else {
       // Cast to any to satisfy expo-router's strict union route types
@@ -247,6 +389,11 @@ export default function ProfileScreen() {
         onConfirm={handleConfirmLogout}
         title="Confirm Logout"
         message="Are you sure you want to log out from your account?"
+      />
+
+      <ApiSettingsModal
+        visible={showApiSettings}
+        onClose={() => setShowApiSettings(false)}
       />
 
       {/* Optional loader overlay when pending logout */}
@@ -414,5 +561,56 @@ const styles = StyleSheet.create({
   pendingText: {
     color: THEME.primary,
     fontWeight: "600",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  apiKeyInputContainer: {
+    width: "100%",
+    marginBottom: 16,
+  },
+  apiKeyLabel: {
+    color: THEME.primary,
+    fontSize: 14,
+    fontWeight: "700",
+    marginBottom: 8,
+  },
+  apiKeyInputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    paddingHorizontal: 12,
+  },
+  apiKeyInput: {
+    flex: 1,
+    height: 48,
+    color: "#fff",
+    fontSize: 14,
+  },
+  eyeIcon: {
+    padding: 8,
+  },
+  saveKeysButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: THEME.primary,
+    width: "100%",
+    height: 50,
+    borderRadius: 12,
+    marginTop: 20,
+    gap: 10,
+  },
+  saveKeysButtonText: {
+    color: "#111",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });

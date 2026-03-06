@@ -1,5 +1,5 @@
+import { AIInterface } from "@/shared/GlobalApi";
 import color from "@/shared/color";
-import { AIChatmodel } from "@/shared/GlobalApi";
 import * as Clipboard from "expo-clipboard";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
@@ -95,7 +95,7 @@ export default function ChatUi() {
         if (messagesListJSON?.length > 0) {
           // Filter out system messages to avoid duplicates
           const nonSystemMessages = messagesListJSON.filter(
-            (msg: Message) => msg.role !== "system"
+            (msg: Message) => msg.role !== "system",
           );
           setMessages(nonSystemMessages);
         }
@@ -131,7 +131,7 @@ export default function ChatUi() {
 
   // ---------- Upload function (Supabase) using base64 -> ArrayBuffer ----------
   const UploadImageToStorage = async (
-    localUri: string
+    localUri: string,
   ): Promise<string | null> => {
     try {
       if (!localUri) {
@@ -160,7 +160,7 @@ export default function ChatUi() {
         } catch (copyErr) {
           console.warn(
             "Failed to copy content:// -> will try original URI. err:",
-            copyErr
+            copyErr,
           );
           fileUri = localUri;
         }
@@ -234,7 +234,7 @@ export default function ChatUi() {
       if (!publicUrl) {
         ToastAndroid.show(
           "Uploaded but URL unavailable (private bucket).",
-          ToastAndroid.LONG
+          ToastAndroid.LONG,
         );
       }
 
@@ -282,13 +282,16 @@ export default function ChatUi() {
     setMessages((prev) => [...prev, loadingMessage]);
 
     try {
-      const result = await AIChatmodel([...messages, newMessage]);
+      const result = await AIInterface([...messages, newMessage]);
       console.log(result.aiResponse);
 
       // Create proper message object for the AI response
       const aiMessage = {
         role: "assistant",
-        content: result.aiResponse,
+        content:
+          result.type === "image"
+            ? [{ type: "image_url", image_url: { url: result.aiResponse } }]
+            : result.aiResponse,
       };
 
       // Replace the loading message with the actual response
@@ -474,12 +477,12 @@ export default function ChatUi() {
                         </Text>
                       )}
                       {item.content.find(
-                        (c: any) => c.type === "image_url"
+                        (c: any) => c.type === "image_url",
                       ) && (
                         <Image
                           source={{
                             uri: item.content.find(
-                              (c: any) => c.type === "image_url"
+                              (c: any) => c.type === "image_url",
                             ).image_url?.url,
                           }}
                           style={{

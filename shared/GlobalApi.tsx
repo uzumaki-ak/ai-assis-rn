@@ -1,81 +1,127 @@
 import axios from "axios";
+import { API_KEYS, getApiKey } from "./KeyManagement";
 
-export const AIChatmodel = async (messages: any) => {
-  /* Send POST request using Axios */
-  const response = await axios.post(
-    "https://kravixstudio.com/api/v1/chat",
-    {
-      message: messages, // Messages to AI
-      aiModel: "gpt-4.1-mini", // Selected AI model
-      outputType: "text", // 'text' or 'json'
-    },
-    {
-      headers: {
-        "Content-Type": "application/json", // Tell server we're sending JSON
-        Authorization:
-          "Bearer " + process.env.EXPO_PUBLIC_KRAVIX_STUDIO_API_KEY, // Replace with your API key
-      },
-    }
-  );
-  console.log(response.data);
-  return response.data;
+const DEFAULT_GEMINI_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+const DEFAULT_EURON_KEY = process.env.EXPO_PUBLIC_KRAVIX_STUDIO_API_KEY; // Using existing env if available
+
+/**
+ * Detects if the prompt is requesting an image.
+ */
+const isImageRequest = (text: string): boolean => {
+  const keywords = [
+    "generate image",
+    "create image",
+    "draw",
+    "picture of",
+    "imagine",
+    "show me a",
+    "generate a photo",
+    "generate an image",
+  ];
+  return keywords.some((keyword) => text.toLowerCase().includes(keyword));
 };
 
-///!gemini
-// import axios from "axios";
+/**
+ * Text Generation using Gemini 2.0 Flash
+ */
+export const AIChatmodel = async (messages: any) => {
+  try {
+    const userKey = await getApiKey(API_KEYS.GOOGLE_AI);
+    const apiKey = userKey || DEFAULT_GEMINI_KEY;
 
-// export const AIChatmodel = async (messages: any) => {
-//   try {
-//     // Filter out system messages and format for Gemini
-//     const formattedMessages = messages
-//       .filter((msg: any) => msg.role !== "system")
-//       .map((msg: any) => ({
-//         role: msg.role === "assistant" ? "model" : "user",
-//         parts: [{ text: msg.content }]
-//       }));
+    if (!apiKey) throw new Error("Google AI API Key not found.");
 
-//     // Handle system message separately if it exists
-//     const systemMessage = messages.find((msg: any) => msg.role === "system");
+    // Format messages for Gemini
+    const formattedMessages = messages
+      .filter((msg: any) => msg.role !== "system")
+      .map((msg: any) => ({
+        role: msg.role === "assistant" ? "model" : "user",
+        parts: [{ text: msg.content }],
+      }));
 
-//     // Gemini API endpoint
-//     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.EXPO_PUBLIC_GEMINI_API_KEY}`;
+    const systemMessage = messages.find((msg: any) => msg.role === "system");
 
-//     const requestBody = {
-//       contents: formattedMessages,
-//       generationConfig: {
-//         temperature: 0.7,
-//         topK: 1,
-//         topP: 1,
-//         maxOutputTokens: 2048,
-//       }
-//     };
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
-//     // Add system instruction if available
-//     if (systemMessage) {
-//       requestBody.systemInstruction = {
-//         parts: [{ text: systemMessage.content }]
-//       };
-//     }
+    const requestBody: any = {
+      contents: formattedMessages,
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 2048,
+      },
+    };
 
-//     const response = await axios.post(apiUrl, requestBody, {
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//     });
+    if (systemMessage) {
+      requestBody.systemInstruction = {
+        parts: [{ text: systemMessage.content }],
+      };
+    }
 
-//     // Extract the generated text from Gemini's response
-//     const aiResponse = response.data.candidates[0].content.parts[0].text;
+    const response = await axios.post(apiUrl, requestBody);
+    const aiResponse =
+      response.data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "No response generated.";
 
-//     // Return in the same format as Kravix for compatibility
-//     return {
-//       aiResponse: aiResponse,
-//       creditsDeducted: 0, // Gemini doesn't use credits
-//       remainingCredits: 0,
-//       tokensUsed: response.data.usageMetadata?.totalTokenCount || 0
-//     };
+    return {
+      aiResponse,
+      type: "text",
+    };
+  } catch (error: any) {
+    console.error("Gemini API Error:", error.response?.data || error.message);
+    throw error;
+  }
+};
 
-//   } catch (error) {
-//     console.error("Gemini API Error:", error.response?.data || error.message);
-//     throw error;
-//   }
-// };
+/**
+ * Image Generation using Euron API
+ */
+export const GenerateImage = async (prompt: string) => {
+  try {
+    const userKey = await getApiKey(API_KEYS.EURON);
+    const apiKey = userKey || DEFAULT_EURON_KEY;
+
+    if (!apiKey) throw new Error("Euron API Key not found.");
+
+    const response = await axios.post(
+      "https://api.euron.one/api/v1/euri/images/generations",
+      {
+        prompt: prompt,
+        model: "gemini-3-pro-image-preview", // or other supported model
+        n: 1,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+      },
+    );
+
+    // Assuming the API returns a URL in data.data[0].url or similar
+    const imageUrl = response.data?.data?.[0]?.url;
+
+    return {
+      aiResponse: imageUrl,
+      type: "image",
+    };
+  } catch (error: any) {
+    console.error(
+      "Euron Image API Error:",
+      error.response?.data || error.message,
+    );
+    throw error;
+  }
+};
+
+/**
+ * Unified AI Interface with Intent Detection
+ */
+export const AIInterface = async (messages: any) => {
+  const lastMessage = messages[messages.length - 1]?.content || "";
+
+  if (isImageRequest(lastMessage)) {
+    return await GenerateImage(lastMessage);
+  } else {
+    return await AIChatmodel(messages);
+  }
+};

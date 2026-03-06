@@ -62,7 +62,7 @@ export default function Index() {
       const result = await startSSOFlow({
         strategy: "oauth_google",
         redirectUrl: AuthSession.makeRedirectUri({
-          scheme: "your-app-scheme", // Replace with your actual scheme
+          scheme: "aiassist",
         }),
       });
 
@@ -102,7 +102,7 @@ export default function Index() {
         console.log("Sign in incomplete, additional steps required");
         Alert.alert(
           "Additional Verification Required",
-          "Please complete the verification process."
+          "Please complete the verification process.",
         );
       }
     } catch (err) {
