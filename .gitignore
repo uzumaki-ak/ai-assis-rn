@@ -1,16 +1,18 @@
-node_modules/
-.expo/
-dist/
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# Native
-android/
-ios/
-
-# Environment
-.env*.local
-
-# macOS
-.DS_Store
+node_modules/
+.expo/
+dist/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Native
+android/
+ios/
+
+# Environment
+.env*.local
+
+# macOS
+.DS_Store
+config.bat
+.env
