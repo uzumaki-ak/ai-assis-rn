@@ -41,7 +41,7 @@ export const AIChatmodel = async (messages: any) => {
 
     const systemMessage = messages.find((msg: any) => msg.role === "system");
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     const requestBody: any = {
       contents: formattedMessages,
